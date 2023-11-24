@@ -1,0 +1,185 @@
+Comment installer Ansible AWX sur Debian 10
+Sur cette page
+Prérequis
+Mise en route
+Installer Ansible
+Installer Docker et Docker Compose
+Installer Node.js et NPM
+Installer AWX
+Accéder à Ansible AWX
+Conclusion
+Ansible est un outil d'automatisation open source utilisé pour le provisionnement de logiciels, la gestion de la configuration et le déploiement d'applications. Il vous permet d'installer, de configurer et de déployer automatiquement des applications sur plusieurs systèmes.
+
+AWX est une application Web utilisée pour contrôler Ansible. Vous pouvez gérer les playbooks Ansible, les inventaires, les secrets et les tâches planifiées à partir d'une interface Web AWX.
+
+Caractéristiques
+
+Prise en charge de plusieurs clouds tels qu'AWS, Azure et GCP
+Suivi de l'activité des utilisateurs
+Améliorez l'efficacité et la sécurité
+Contrôle d'accès basé sur les rôles des utilisateurs et authentification
+Planification des tâches
+Notifications intégrées
+Dans cet article, nous vous montrerons comment installer AWX sur le serveur Debian 10.
+
+Conditions préalables
+Un serveur exécutant Debian 10.
+Un mot de passe root est configuré sur le serveur.
+Commencer
+Tout d'abord, mettez à jour tous les packages système vers la dernière version à l'aide de la commande suivante :
+
+apt-get update -y
+Une fois tous les packages mis à jour, installez les autres packages requis avec la commande suivante :
+
+apt-get install apt-transport-https ca-certificates software-properties-common unzip gnupg2 curl git -y
+Après avoir installé tous les packages, vous pouvez passer à l'étape suivante.
+
+Installer Ansible
+Ensuite, vous devrez installer Ansible sur votre système. Par défaut, la dernière version d'Ansible n'est pas incluse dans le référentiel Debian 10. Vous devrez donc ajouter le référentiel Ansible à APT. Vous pouvez l'ajouter avec la commande suivante :
+
+echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu bionic main" | tee /etc/apt/sources.list.d/ansible.list
+Une fois le dépôt ajouté, ajoutez la clé GPG avec la commande suivante :
+
+apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+Ensuite, mettez à jour le référentiel et installez la dernière version d'Ansible avec la commande suivante :
+
+apt-get update -y
+apt-get install ansible -y
+Une fois Ansible installé, vous pouvez vérifier la version installée d'Ansible avec la commande suivante :
+
+ansible --version
+Vous devriez obtenir la sortie suivante :
+
+ansible 2.9.19
+  config file = /etc/ansible/ansible.cfg
+  configured module search path = [u'/root/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python2.7/dist-packages/ansible
+  executable location = /usr/bin/ansible
+  python version = 2.7.16 (default, Oct 10 2019, 22:02:15) [GCC 8.3.0]
+À ce stade, Ansible est installé sur votre système. Vous pouvez maintenant passer à l'étape suivante.
+
+Installer Docker et Docker Compose
+Ensuite, vous devrez installer Docker et Docker Compose sur votre système. Par défaut, la dernière version de Docker n'est pas disponible dans le référentiel par défaut de Debian 10. Vous devrez donc ajouter le référentiel Docker CE à votre système. Commencez par ajouter la clé Docker et le dépôt avec la commande suivante :
+
+curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"
+Ensuite, mettez à jour le référentiel et installez Docker CE avec la commande suivante :
+
+apt-get update -y
+apt-get install docker-ce -y
+Une fois le Docker installé, vérifiez la version de Docker avec la commande suivante :
+
+docker --version
+Vous devriez voir la sortie suivante :
+
+Docker version 20.10.5, build 55c4c88
+Ensuite, vous devrez installer la dernière version de Docker Compose sur votre système. Vous pouvez télécharger le binaire Docker Compose avec la commande suivante :
+
+curl -s https://api.github.com/repos/docker/compose/releases/latest | grep browser_download_url | grep docker-compose-Linux-x86_64 | cut -d '"' -f 4 | wget -qi -
+Une fois le téléchargement terminé, définissez l'autorisation appropriée avec la commande suivante :
+
+chmod +x docker-compose-Linux-x86_64
+Ensuite, déplacez le binaire Docker Compose vers le chemin système avec la commande suivante :
+
+mv docker-compose-Linux-x86_64 /usr/local/bin/docker-compose
+Ensuite, vérifiez la version de Docker Compose avec la commande suivante :
+
+docker-compose version
+Vous devriez obtenir la sortie suivante :
+
+docker-compose version 1.28.5, build c4eb3a1f
+docker-py version: 4.4.4
+CPython version: 3.7.10
+OpenSSL version: OpenSSL 1.1.0l  10 Sep 2019
+À ce stade, Docker et Docker Compose sont installés sur votre système. Vous pouvez maintenant passer à l'étape suivante.
+
+Installer Node.js et NPM
+Ensuite, vous devrez installer Node.js et NPM sur votre système. Vous pouvez installer Node.js et NPM avec la commande suivante :
+
+apt-get install nodejs npm -y
+npm install npm --global
+Ensuite, installez les autres dépendances Python avec la commande suivante :
+
+apt-get install python3-pip git pwgen -y
+Ensuite, installez le module Docker Compose qui correspond à votre version de Docker Compose avec la commande suivante :
+
+pip3 install docker-compose==1.28.5
+Une fois que vous avez terminé, vous pouvez passer à l'étape suivante.
+
+Remarque : Assurez-vous que 1.28.5 correspond à la version de Docker Compose installée sur votre système.
+
+Installer AWX
+Ensuite, vous devrez installer AWX sur votre système. Tout d'abord, téléchargez l'AWX depuis le référentiel Git Hub avec la commande suivante :
+
+wget https://github.com/ansible/awx/archive/17.1.0.zip
+Une fois le téléchargement terminé, décompressez le fichier téléchargé avec la commande suivante :
+
+unzip 17.1.0.zip
+Ensuite, changez le répertoire pour installer avec la commande suivante :
+
+cd awx-17.1.0/installer/
+Générez ensuite la clé secrète en exécutant la commande suivante :
+
+pwgen -N 1 -s 30
+Vous devriez obtenir la sortie suivante :
+
+3BgGA8MnM4gKTXV8r7vQhwjjNixO6o
+Ensuite, modifiez le fichier d'inventaire et définissez votre nom d'utilisateur, votre mot de passe et votre clé secrète :
+
+nano inventory
+Modifiez les lignes suivantes :
+
+admin_user=admin
+admin_password=securepassword
+secret_key=3BgGA8MnM4gKTXV8r7vQhwjjNixO6o
+Enregistrez et fermez le fichier lorsque vous avez terminé, puis installez l'AWX en exécutant la commande suivante :
+
+ansible-playbook -i inventory install.yml
+Une fois l'AWX installé avec succès, vous devriez obtenir le résultat suivant :
+
+changed: [localhost]
+
+TASK [local_docker : Create Docker Compose Configuration] *************************************************************************************
+changed: [localhost] => (item={u'mode': u'0600', u'file': u'environment.sh'})
+changed: [localhost] => (item={u'mode': u'0600', u'file': u'credentials.py'})
+changed: [localhost] => (item={u'mode': u'0600', u'file': u'docker-compose.yml'})
+changed: [localhost] => (item={u'mode': u'0600', u'file': u'nginx.conf'})
+changed: [localhost] => (item={u'mode': u'0664', u'file': u'redis.conf'})
+
+TASK [local_docker : Render SECRET_KEY file] **************************************************************************************************
+changed: [localhost]
+
+TASK [local_docker : Remove AWX containers before migrating postgres so that the old postgres container does not get used] ********************
+ok: [localhost]
+
+TASK [local_docker : Run migrations in task container] ****************************************************************************************
+changed: [localhost]
+
+TASK [local_docker : Start the containers] ****************************************************************************************************
+changed: [localhost]
+
+TASK [local_docker : Update CA trust in awx_web container] ************************************************************************************
+changed: [localhost]
+
+TASK [local_docker : Update CA trust in awx_task container] ***********************************************************************************
+changed: [localhost]
+
+TASK [local_docker : Wait for launch script to create user] ***********************************************************************************
+ok: [localhost]
+
+TASK [local_docker : Create Preload data] *****************************************************************************************************
+changed: [localhost]
+
+PLAY RECAP ************************************************************************************************************************************
+localhost                  : ok=21   changed=12   unreachable=0    failed=0    skipped=73   rescued=0    ignored=1   
+À ce stade, AWX est installé sur votre système. Vous pouvez maintenant accéder à l'interface utilisateur Web AWX.
+
+Accéder à Ansible AWX
+Maintenant, ouvrez votre navigateur Web et accédez à l'interface Web Ansible AWX à l'aide de l'URL http://your-server-ip. Vous serez redirigé vers la page de connexion AWX :
+
+
+Indiquez votre nom d'utilisateur et votre mot de passe d'administrateur et cliquez sur le bouton Connexion. Vous devriez voir le tableau de bord Ansible AWX sur la page suivante :
+
+
+Conclusion
+Toutes nos félicitations! vous avez installé avec succès Ansible AWX sur le serveur Debian 10. Vous pouvez désormais gérer facilement le playbook, l'inventaire et les tâches Ansible à partir du tableau de bord AWX. N'hésitez pas à me demander si vous avez des questions.
