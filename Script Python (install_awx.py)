@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+
+import subprocess
+
+# Mise à jour des packages système
+subprocess.run(["apt-get", "update", "-y"])
+
+# Installation des packages requis
+subprocess.run(["apt-get", "install", "apt-transport-https", "ca-certificates", "software-properties-common", "unzip", "gnupg2", "curl", "git", "-y"])
+
+# Installation d'Ansible
+subprocess.run(["echo", "deb http://ppa.launchpad.net/ansible/ansible/ubuntu bionic main", ">", "/etc/apt/sources.list.d/ansible.list"])
+subprocess.run(["apt-key", "adv", "--keyserver", "keyserver.ubuntu.com", "--recv-keys", "93C4A3FD7BB9C367"])
+subprocess.run(["apt-get", "update", "-y"])
+subprocess.run(["apt-get", "install", "ansible", "-y"])
+
+# Installation de Docker et Docker Compose
+subprocess.run(["curl", "-fsSL", "https://download.docker.com/linux/debian/gpg", "|", "apt-key", "add", "-"])
+subprocess.run(["add-apt-repository", "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable"])
+subprocess.run(["apt-get", "update", "-y"])
+subprocess.run(["apt-get", "install", "docker-ce", "-y"])
+docker_compose_url = subprocess.run(["curl", "-s", "https://api.github.com/repos/docker/compose/releases/latest", "|", "grep", "browser_download_url", "|", "grep", "docker-compose-Linux-x86_64", "|", "cut", "-d", '"', "-f", "4"], capture_output=True, text=True).stdout.strip()
+subprocess.run(["wget", "-qi", docker_compose_url])
+subprocess.run(["chmod", "+x", "docker-compose-Linux-x86_64"])
+subprocess.run(["mv", "docker-compose-Linux-x86_64", "/usr/local/bin/docker-compose"])
+
+# Installation de Node.js, NPM, et autres dépendances
+subprocess.run(["apt-get", "install", "nodejs", "npm", "-y"])
+subprocess.run(["npm", "install", "npm", "--global"])
+subprocess.run(["apt-get", "install", "python3-pip", "git", "pwgen", "-y"])
+subprocess.run(["pip3", "install", "docker-compose==1.28.5"])
+
+# Installation d'AWX
+subprocess.run(["wget", "https://github.com/ansible/awx/archive/17.1.0.zip"])
+subprocess.run(["unzip", "17.1.0.zip"])
+subprocess.run(["cd", "awx-17.1.0/installer/"])
+secret_key = subprocess.run(["pwgen", "-N", "1", "-s", "30"], capture_output=True, text=True).stdout.strip()
+inventory_content = f"admin_user=admin\nadmin_password=securepassword\nsecret_key={secret_key}"
+with open("inventory", "w") as inventory_file:
+    inventory_file.write(inventory_content)
+subprocess.run(["ansible-playbook", "-i", "inventory", "install.yml"])
+
+# Affichage du résultat
+print("AWX est installé avec succès sur votre système.")
+
+
+
+***"verifier les version !*** 
